@@ -4,9 +4,13 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
-
+const cors = require('cors');
 const app = express();
 
+// Habilita CORS para tu dominio frontend
+app.use(cors({
+  origin: 'https://casa-odontologica.vercel.app' // Reemplaza con tu dominio frontend
+}));
 
 // Middleware para parsear JSON y solicitudes codificadas en URL
 app.use(express.json());
