@@ -20,7 +20,6 @@ app.use(express.urlencoded({ extended: true }));
 
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
 
 // Configura Cloudinary con tus credenciales
 cloudinary.config({
