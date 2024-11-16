@@ -7,6 +7,8 @@ const xlsx = require('xlsx');
 const cors = require('cors');
 const app = express();
 
+
+
 // Habilita CORS para tu dominio frontend
 app.use(cors({
   origin: 'https://casa-odontologica.vercel.app' // Reemplaza con tu dominio frontend
@@ -16,20 +18,28 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de multer para manejar archivos
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+
+// Configura Cloudinary con tus credenciales
+cloudinary.config({
+  cloud_name: 'Untitled', // Reemplaza con tu Cloud Name
+  api_key: '761317986176149', // Reemplaza con tu API Key
+  api_secret: 'WGtY0xjLG0Csw-Uk4Fr67EINcR0', // Reemplaza con tu API Secret
+});
+
+// Configura Multer para usar Cloudinary como almacenamiento
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'uploads', // Carpeta donde se guardarán los archivos en Cloudinary
+    resource_type: 'auto', // Permite subir imágenes, videos, PDF, etc.
   },
 });
+
 const upload = multer({ storage });
+
 
 // Configuración de nodemailer
 const transporter = nodemailer.createTransport({
@@ -40,53 +50,40 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Endpoint para enviar correos
+//ENDPOINT PARA ENVIAR CORREO
 app.post('/send-email', upload.single('archivo'), async (req, res) => {
   try {
-    console.log('Datos del formulario:', req.body);
-    console.log('Archivo recibido:', req.file);
-
     const { nombre, telefono, email, mensaje } = req.body;
     const file = req.file;
 
+    // Enlace público del archivo subido a Cloudinary
+    const fileUrl = file ? file.path : null;
+
     const mailOptions = {
       from: 'pwebcasao@gmail.com',
-      to: 'sebastianburbano06@gmail.com', // Reemplaza con el correo destinatario
+      to: 'sebastianburbano06@gmail.com',
       subject: 'Nueva queja o reclamo',
       text: `Nombre: ${nombre}\nTeléfono: ${telefono}\nCorreo electrónico: ${email}\nMensaje: ${mensaje}`,
+      attachments: fileUrl
+        ? [
+            {
+              filename: file.originalname,
+              path: fileUrl, // Enlace al archivo en Cloudinary
+            },
+          ]
+        : [],
     };
-
-    // Adjuntar archivo si está presente
-    if (file) {
-      mailOptions.attachments = [
-        {
-          filename: file.originalname,
-          path: file.path,
-        },
-      ];
-    }
 
     // Enviar el correo
     await transporter.sendMail(mailOptions);
-    console.log('Correo enviado exitosamente');
 
-    // Eliminar el archivo después de enviarlo
-    if (file) {
-      fs.unlink(file.path, (err) => {
-        if (err) {
-          console.error('Error al eliminar el archivo adjunto:', err);
-        } else {
-          console.log('Archivo eliminado correctamente');
-        }
-      });
-    }
-
-    res.status(200).json({ message: 'Correo enviado exitosamente' });
+    res.status(200).json({ message: 'Correo enviado exitosamente', fileUrl });
   } catch (error) {
     console.error('Error en el backend al enviar el correo:', error);
     res.status(500).json({ message: 'Error al enviar el correo' });
   }
 });
+
 
 // Endpoint para leer productos desde un archivo Excel
 app.get('/products', (req, res) => {
