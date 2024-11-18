@@ -60,7 +60,7 @@ app.post('/send-email', upload.single('archivo'), async (req, res) => {
 
     const mailOptions = {
       from: 'pwebcasao@gmail.com',
-      to: 'comercial@casaodontologica.com.co',
+      to: 'comercial1@casaodontologica.com.co',
       subject: 'Nueva queja o reclamo',
       text: `Nombre: ${nombre}\nTeléfono: ${telefono}\nCorreo electrónico: ${email}\nMensaje: ${mensaje}`,
       attachments: fileUrl
