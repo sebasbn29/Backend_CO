@@ -11,7 +11,8 @@ const app = express();
 
 // Habilita CORS para tu dominio frontend
 app.use(cors({
-  origin: 'https://casa-odontologica.vercel.app' // Reemplaza con tu dominio frontend
+  origin: 'https://casa-odontologica.vercel.app', // Reemplaza con tu dominio frontend
+  origin: 'https://www.casaodontologica.com.co' // Reemplaza con tu dominio frontend
 }));
 
 // Middleware para parsear JSON y solicitudes codificadas en URL
